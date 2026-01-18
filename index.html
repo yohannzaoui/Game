@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Sniper - Moving Targets</title>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --accent: #ff00ea;
+            --laser: #ffff00;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw; height: 85vh;
+            background-color: #000;
+            cursor: none;
+            overflow: hidden;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        #background-image {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('img.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+
+        /* --- SCOPES --- */
+        #scope {
+            position: absolute; pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .scope-sniper {
+            width: 80px; height: 80px;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+        }
+        .scope-sniper::before { content: ''; position: absolute; width: 150px; height: 2px; background: #00ff00; }
+        .scope-sniper::after { content: ''; position: absolute; width: 2px; height: 150px; background: #00ff00; }
+
+        .scope-ar {
+            width: 30px; height: 30px;
+            border: 2px solid red; border-radius: 50%;
+            box-shadow: 0 0 10px red;
+        }
+        .scope-ar::after { content: ''; position: absolute; width: 6px; height: 6px; background: red; border-radius: 50%; }
+
+        /* --- MOVING TARGETS --- */
+        .target {
+            position: absolute;
+            font-size: 60px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            will-change: transform;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,1));
+        }
+
+        .target-label {
+            font-size: 14px; background: rgba(0,0,0,0.8);
+            padding: 2px 8px; color: white; border-radius: 4px; font-weight: bold;
+        }
+
+        /* --- EFFECTS --- */
+        .tracer {
+            position: absolute; width: 8px; background: var(--laser);
+            box-shadow: 0 0 20px var(--laser); z-index: 500;
+            pointer-events: none; border-radius: 4px;
+        }
+
+        .muzzle-flash {
+            position: absolute; width: 30px; height: 30px;
+            background: white; border-radius: 50%; z-index: 1100;
+            box-shadow: 0 0 30px white; pointer-events: none;
+        }
+
+        /* --- UI --- */
+        #ui-panel {
+            height: 15vh; background: #111;
+            display: flex; justify-content: space-around; align-items: center;
+        }
+        .weapon-btn { 
+            background: #222; color: white; border: 2px solid #444; 
+            padding: 10px 20px; cursor: pointer; font-weight: bold;
+        }
+        .weapon-btn.active { border-color: var(--accent); color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="background-image"></div>
+        <div id="scope" class="scope-sniper"></div>
+    </div>
+
+    <div id="ui-panel">
+        <div>
+            <button class="weapon-btn active" id="btn-sniper" onclick="setWeapon('sniper')">SNIPER</button>
+            <button class="weapon-btn" id="btn-ar" onclick="setWeapon('ar')">AR (AUTO)</button>
+        </div>
+        <div style="font-size: 24px; font-weight: bold;">SCORE: <span id="score">0</span></div>
+        <button onclick="resetGame()" style="background:#555; color:white; border:none; padding:10px; cursor:pointer;">RESET</button>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentWeapon = 'sniper';
+        let fireInterval = null;
+        let mouseX = 0, mouseY = 0;
+        let targets = [];
+
+        const brainrots = [
+            {icon:'🚽', name:'SKIBIDI'}, 
+            {icon:'🍷', name:'SIGMA'}, 
+            {icon:'💀', name:'OHIO'},
+            {icon:'🐱', name:'SMURF CAT'}
+        ];
+
+        const gameContainer = document.getElementById('game-container');
+        const scope = document.getElementById('scope');
+        const scoreDisplay = document.getElementById('score');
+
+        // Mouse tracking
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            scope.style.left = mouseX + 'px';
+            scope.style.top = mouseY + 'px';
+        });
+
+        function setWeapon(type) {
+            currentWeapon = type;
+            document.querySelectorAll('.weapon-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + type).classList.add('active');
+            scope.className = (type === 'sniper') ? 'scope-sniper' : 'scope-ar';
+        }
+
+        // Shooting logic
+        gameContainer.addEventListener('mousedown', () => {
+            if (currentWeapon === 'ar') {
+                shoot();
+                if (!fireInterval) fireInterval = setInterval(shoot, 110);
+            } else {
+                shoot();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            clearInterval(fireInterval);
+            fireInterval = null;
+        });
+
+        function shoot() {
+            createFlash();
+            if (currentWeapon === 'ar') createTracer();
+
+            const hitTarget = document.elementFromPoint(mouseX, mouseY)?.closest('.target');
+            if (hitTarget) {
+                score += (currentWeapon === 'sniper' ? 100 : 20);
+                scoreDisplay.innerText = score;
+                
+                // Remove from array and DOM
+                targets = targets.filter(t => t.el !== hitTarget);
+                hitTarget.remove();
+                
+                spawnTarget();
+                savePrefs();
+            }
+        }
+
+        // --- Target Movement System ---
+        function spawnTarget() {
+            const data = brainrots[Math.floor(Math.random() * brainrots.length)];
+            const div = document.createElement('div');
+            div.className = 'target';
+            
+            const x = Math.random() * (window.innerWidth - 100) + 50;
+            const y = Math.random() * (window.innerHeight * 0.7) + 50;
+            
+            div.innerHTML = `<span>${data.icon}</span><div class="target-label">${data.name}</div>`;
+            gameContainer.appendChild(div);
+
+            const speedMultiplier = 2 + Math.random() * 3;
+            targets.push({
+                el: div,
+                x: x,
+                y: y,
+                dx: (Math.random() - 0.5) * speedMultiplier,
+                dy: (Math.random() - 0.5) * speedMultiplier,
+                rotation: 0,
+                rotSpeed: (Math.random() - 0.5) * 2
+            });
+        }
+
+        function updateMovement() {
+            targets.forEach(t => {
+                t.x += t.dx;
+                t.y += t.dy;
+                t.rotation += t.rotSpeed;
+
+                // Bounce X
+                if (t.x <= 0 || t.x >= window.innerWidth - 80) t.dx *= -1;
+                // Bounce Y
+                if (t.y <= 0 || t.y >= window.innerHeight * 0.85 - 100) t.dy *= -1;
+
+                t.el.style.transform = `translate(${t.x}px, ${t.y}px) rotate(${t.rotation}deg)`;
+            });
+            requestAnimationFrame(updateMovement);
+        }
+
+        // --- Visual Effects ---
+        function createFlash() {
+            const f = document.createElement('div');
+            f.className = 'muzzle-flash';
+            f.style.left = (mouseX - 15) + 'px';
+            f.style.top = (mouseY - 15) + 'px';
+            gameContainer.appendChild(f);
+            setTimeout(() => f.remove(), 40);
+        }
+
+        function createTracer() {
+            const t = document.createElement('div');
+            t.className = 'tracer';
+            const startX = window.innerWidth * 0.9;
+            const startY = window.innerHeight;
+            const dist = Math.sqrt(Math.pow(mouseX - startX, 2) + Math.pow(mouseY - startY, 2));
+            const angle = Math.atan2(mouseY - startY, mouseX - startX);
+
+            t.style.height = dist + 'px';
+            t.style.left = startX + 'px';
+            t.style.top = startY + 'px';
+            t.style.transformOrigin = 'top center';
+            t.style.transform = `rotate(${angle + Math.PI/2}deg)`;
+
+            gameContainer.appendChild(t);
+            setTimeout(() => t.remove(), 60);
+        }
+
+        function savePrefs() {
+            localStorage.setItem('sniper_prefs', JSON.stringify({score, currentWeapon}));
+        }
+
+        function resetGame() {
+            score = 0; scoreDisplay.innerText = 0;
+            targets.forEach(t => t.el.remove());
+            targets = [];
+            for(let i=0; i<4; i++) spawnTarget();
+            savePrefs();
+        }
+
+        window.onload = () => {
+            const saved = localStorage.getItem('sniper_prefs');
+            if (saved) {
+                const data = JSON.parse(saved);
+                score = data.score || 0;
+                scoreDisplay.innerText = score;
+            }
+            for(let i=0; i<4; i++) spawnTarget();
+            updateMovement(); // Start loop
+        };
+    </script>
+</body>
+</html>
