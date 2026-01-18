@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortnite Aim Trainer - Coin Flip Start</title>
+    <title>Fortnite Aim Trainer - Red Damage</title>
     <style>
         :root {
             --bg-dark: #050505;
             --accent: #ff00ea;
             --laser: #ffff00;
-            --legendary: #ffa500;
-            --epic: #a335ee;
-            --rare: #0070dd;
+            --damage-red: #ff0000; /* Red Damage Color */
         }
 
         body {
@@ -26,26 +24,22 @@
         /* --- COIN FLIP OVERLAY --- */
         #coin-flip-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             z-index: 5000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
         #coin {
-            width: 150px; height: 150px;
-            background: gold; border: 5px solid #b8860b;
+            width: 120px; height: 120px;
+            background: gold; border: 4px solid #b8860b;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; font-weight: bold; color: #444;
+            font-size: 20px; font-weight: bold; color: #444;
             margin-bottom: 20px;
-            transition: transform 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .flip-animation { animation: rotateCoin 1.5s forwards; }
-        @keyframes rotateCoin {
-            0% { transform: rotateY(0); }
-            100% { transform: rotateY(1800deg); }
-        }
+        .flip-animation { animation: rotateCoin 1.2s forwards; }
+        @keyframes rotateCoin { 0% { transform: rotateY(0); } 100% { transform: rotateY(1440deg); } }
 
         /* --- GAME STRUCTURE --- */
         #game-container {
@@ -72,18 +66,32 @@
         .scope-ar { width: 34px; height: 34px; border: 2px solid red; border-radius: 50%; box-shadow: 0 0 10px red; }
         .scope-ar::after { content: ''; position: absolute; width: 6px; height: 6px; background: red; border-radius: 50%; }
 
-        .target { position: absolute; z-index: 100; display: flex; flex-direction: column; align-items: center; }
-        .skin-icon { font-size: 50px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); }
-        .target-label { font-size: 12px; padding: 3px 10px; color: white; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-        .rarity-legendary { background: var(--legendary); }
-        .rarity-epic { background: var(--epic); }
-        .rarity-rare { background: var(--rare); }
+        /* --- RED DAMAGE TEXT --- */
+        .damage-text {
+            position: absolute;
+            color: var(--damage-red);
+            font-size: 38px;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 1500;
+            text-shadow: 2px 2px 4px #000;
+            animation: floatUp 0.8s ease-out forwards;
+        }
 
-        .tracer { position: absolute; width: 8px; background: var(--laser); box-shadow: 0 0 20px var(--laser); z-index: 500; pointer-events: none; border-radius: 4px; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1); opacity: 0; }
+        }
+
+        .target { position: absolute; z-index: 100; display: flex; flex-direction: column; align-items: center; }
+        .skin-icon { font-size: 55px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); }
+        .target-label { font-size: 12px; padding: 3px 10px; color: white; border-radius: 4px; font-weight: bold; background: rgba(0,0,0,0.8); }
+
+        .tracer { position: absolute; width: 8px; background: var(--laser); box-shadow: 0 0 20px var(--laser); z-index: 500; pointer-events: none; }
         .muzzle-flash { position: absolute; width: 30px; height: 30px; background: white; border-radius: 50%; z-index: 1100; pointer-events: none; }
 
         #ui-panel { height: 15vh; background: #111; display: flex; justify-content: space-around; align-items: center; }
-        .weapon-btn { background: #222; color: white; border: 2px solid #444; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        .weapon-btn { background: #222; color: white; border: 2px solid #444; padding: 10px 20px; cursor: pointer; }
         .weapon-btn.active { border-color: var(--accent); color: var(--accent); }
     </style>
 </head>
@@ -92,8 +100,7 @@
     <div id="coin-flip-overlay">
         <h1 id="flip-status">COIN FLIP TO START</h1>
         <div id="coin">?</div>
-        <button onclick="startCoinFlip()" style="padding:15px 30px; font-size:20px; cursor:pointer; background:var(--accent); color:white; border:none; border-radius:10px;">FLIP COIN</button>
-        <p style="margin-top:15px;">Heads = Sniper | Tails = AR</p>
+        <button onclick="startCoinFlip()" style="padding:15px 30px; font-size:18px; cursor:pointer; background:var(--accent); color:white; border:none; border-radius:8px;">FLIP COIN</button>
     </div>
 
     <div id="game-container">
@@ -118,37 +125,28 @@
         let targets = [];
 
         const fortniteSkins = [
-            {icon:'👤', name:'Renegade', rarity:'legendary'}, 
-            {icon:'💀', name:'Skull Trooper', rarity:'epic'}, 
-            {icon:'🍌', name:'Peely', rarity:'epic'},
-            {icon:'⚔️', name:'Black Knight', rarity:'legendary'}
+            {icon:'👤', name:'Renegade Raider'}, {icon:'💀', name:'Skull Trooper'}, 
+            {icon:'🍌', name:'Peely'}, {icon:'⚔️', name:'Black Knight'}
         ];
 
         const gameContainer = document.getElementById('game-container');
         const scope = document.getElementById('scope');
         const scoreDisplay = document.getElementById('score');
 
-        // --- COIN FLIP LOGIC ---
         function startCoinFlip() {
             const coin = document.getElementById('coin');
-            const status = document.getElementById('flip-status');
             coin.classList.add('flip-animation');
-            status.innerText = "FLIPPING...";
-
             setTimeout(() => {
                 const result = Math.random() < 0.5 ? 'HEADS' : 'TAILS';
                 coin.innerText = result;
-                status.innerText = (result === 'HEADS') ? "SNIPER SELECTED!" : "AR SELECTED!";
-                
+                setWeapon(result === 'HEADS' ? 'sniper' : 'ar');
                 setTimeout(() => {
-                    setWeapon(result === 'HEADS' ? 'sniper' : 'ar');
                     document.getElementById('coin-flip-overlay').style.display = 'none';
                     initGame();
-                }, 1000);
-            }, 1500);
+                }, 800);
+            }, 1200);
         }
 
-        // --- GAME LOGIC ---
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX; mouseY = e.clientY;
             scope.style.left = mouseX + 'px';
@@ -174,8 +172,10 @@
         function shoot() {
             createFlash();
             if (currentWeapon === 'ar') createTracer();
+            
             const hitTarget = document.elementFromPoint(mouseX, mouseY)?.closest('.target');
             if (hitTarget) {
+                showDamage(mouseX, mouseY);
                 score += 100;
                 scoreDisplay.innerText = score;
                 targets = targets.filter(t => t.el !== hitTarget);
@@ -184,22 +184,32 @@
             }
         }
 
+        function showDamage(x, y) {
+            const dmg = document.createElement('div');
+            dmg.className = 'damage-text';
+            dmg.innerText = '-999';
+            dmg.style.left = (x - 30) + 'px';
+            dmg.style.top = (y - 50) + 'px';
+            gameContainer.appendChild(dmg);
+            setTimeout(() => dmg.remove(), 800); // 0.8s visibility
+        }
+
         function spawnTarget() {
             const skin = fortniteSkins[Math.floor(Math.random() * fortniteSkins.length)];
             const div = document.createElement('div');
             div.className = 'target';
             const x = Math.random() * (window.innerWidth - 120) + 60;
             const y = Math.random() * (window.innerHeight * 0.7) + 60;
-            div.innerHTML = `<div class="skin-icon">${skin.icon}</div><div class="target-label rarity-${skin.rarity}">${skin.name}</div>`;
+            div.innerHTML = `<div class="skin-icon">${skin.icon}</div><div class="target-label">${skin.name}</div>`;
             gameContainer.appendChild(div);
-            const speed = 2 + Math.random() * 3;
+            const speed = 2.5 + Math.random() * 3.5;
             targets.push({ el: div, x: x, y: y, dx: (Math.random()-0.5)*speed, dy: (Math.random()-0.5)*speed });
         }
 
         function updateMovement() {
             targets.forEach(t => {
                 t.x += t.dx; t.y += t.dy;
-                if (t.x <= 0 || t.x >= window.innerWidth - 120) t.dx *= -1;
+                if (t.x <= 0 || t.x >= window.innerWidth - 100) t.dx *= -1;
                 if (t.y <= 0 || t.y >= window.innerHeight * 0.85 - 100) t.dy *= -1;
                 t.el.style.transform = `translate(${t.x}px, ${t.y}px)`;
             });
@@ -231,9 +241,7 @@
             updateMovement();
         }
 
-        function resetGame() {
-            location.reload(); // Re-trigger coin flip
-        }
+        function resetGame() { location.reload(); }
     </script>
 </body>
-</html>
+</html> 
