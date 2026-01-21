@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaming Hub - Peely Edition</title>
+    <title>Gaming Hub - Banana PNG Edition</title>
     <style>
         :root {
             --bg-dark: #050505;
             --accent: #ff00ea;
             --mario-green: #2ecc71;
-            --mario-dark: #27ae60;
             --sky-blue: #70c5ce;
         }
 
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; user-select: none; }
 
-        /* --- HUB LAUNCHER --- */
+        /* --- HUB --- */
         #launcher-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; background: radial-gradient(circle, #1a1a1a 0%, #050505 100%); }
-        .hub-title { font-size: 50px; font-weight: 900; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 5px; color: var(--accent); text-shadow: 0 0 20px var(--accent); }
-        .game-grid { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-        .game-card { width: 200px; height: 300px; background: #111; border: 2px solid #333; border-radius: 20px; cursor: pointer; transition: 0.3s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 20px; }
+        .hub-title { font-size: 50px; font-weight: 900; margin-bottom: 40px; text-transform: uppercase; color: var(--accent); text-shadow: 0 0 20px var(--accent); }
+        .game-grid { display: flex; gap: 20px; }
+        .game-card { width: 200px; height: 280px; background: #111; border: 2px solid #333; border-radius: 20px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; }
         .game-card:hover { transform: translateY(-10px); border-color: var(--accent); }
-        .game-card .icon { font-size: 60px; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); }
 
-        /* --- GLOBAL --- */
+        /* --- APPS --- */
         .app-container { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 5000; }
-        .btn-exit { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 10px 20px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #fff; cursor: pointer; border-radius: 5px; }
-        .score-ui { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: 900; z-index: 9000; color: white; text-shadow: 3px 3px 0 #000; }
+        .btn-exit { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 10px 20px; background: rgba(0,0,0,0.6); color: white; border: 1px solid #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .score-ui { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 50px; font-weight: 900; z-index: 9000; text-shadow: 3px 3px 0 #000; }
 
-        /* --- FLAPPY BANANA STYLES --- */
+        /* --- FLAPPY DESIGN --- */
         #flappy-wrap { width: 100%; height: 100%; background: var(--sky-blue); position: relative; overflow: hidden; }
-        
-        /* Paysage de Montagnes */
-        .mountain { position: absolute; bottom: 0; background: #4b7a47; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.7; }
-        .mt-1 { width: 400px; height: 300px; left: -50px; background: #3d633a; }
-        .mt-2 { width: 500px; height: 400px; left: 200px; background: #2d4d2a; }
-        .mt-3 { width: 600px; height: 250px; right: -100px; background: #3d633a; }
-
+        .mountain { position: absolute; bottom: 0; background: #3d633a; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -45,11 +37,11 @@
         <h1 class="hub-title">Pro Game Hub</h1>
         <div class="game-grid">
             <div class="game-card" onclick="openApp('flappy-app')">
-                <div class="icon">🍌</div>
+                <div style="font-size:60px">🍌</div>
                 <h3>Flappy Banana</h3>
             </div>
             <div class="game-card" onclick="openApp('penalty-app')">
-                <div class="icon">⚽</div>
+                <div style="font-size:60px">⚽</div>
                 <h3>Penalty King</h3>
             </div>
         </div>
@@ -59,25 +51,24 @@
         <button class="btn-exit" onclick="closeApp()">EXIT</button>
         <div class="score-ui" id="flap-score">0</div>
         <div id="flappy-wrap">
-            <div class="mountain mt-1"></div>
-            <div class="mountain mt-2"></div>
-            <div class="mountain mt-3"></div>
+            <div class="mountain" style="width:600px; height:400px; left:-100px;"></div>
+            <div class="mountain" style="width:800px; height:500px; right:-200px;"></div>
             <canvas id="flappy-canvas"></canvas>
         </div>
     </div>
 
     <div id="penalty-app" class="app-container">
         <button class="btn-exit" onclick="closeApp()">EXIT</button>
-        <div style="display:flex; justify-content:center; align-items:center; height:100%; font-size:24px;">Football Game Loaded</div>
     </div>
 
     <script>
         let currentApp = null;
         let flapGameReq;
+        const bananaImg = new Image();
+        bananaImg.src = 'banana.PNG'; // Ton fichier image
 
         function openApp(id) {
             document.getElementById('launcher-screen').style.display = 'none';
-            document.querySelectorAll('.app-container').forEach(a => a.style.display = 'none');
             document.getElementById(id).style.display = 'block';
             currentApp = id;
             if(id === 'flappy-app') startFlappy();
@@ -90,107 +81,86 @@
             currentApp = null;
         }
 
-        /* --- FLAPPY ENGINE --- */
         function startFlappy() {
             const canvas = document.getElementById('flappy-canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
-            let bird = { x: 100, y: canvas.height/2, w: 40, h: 50, v: 0, g: 0.4 };
+            let bird = { x: 100, y: canvas.height/2, w: 50, h: 50, v: 0, g: 0.5 };
             let pipes = [];
             let score = 0;
             let frame = 0;
-
-            function drawPeely(x, y) {
-                // Corps Banane (Fortnite Style)
-                ctx.fillStyle = "#FFD700";
-                ctx.beginPath();
-                ctx.ellipse(x + 20, y + 25, 15, 25, 0.1, 0, Math.PI * 2);
-                ctx.fill();
-                // Haut Noir
-                ctx.fillStyle = "#4b3216";
-                ctx.fillRect(x + 18, y, 4, 5);
-                // Yeux
-                ctx.fillStyle = "white";
-                ctx.beginPath(); ctx.arc(x + 15, y + 15, 4, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + 25, y + 15, 4, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "black";
-                ctx.beginPath(); ctx.arc(x + 15, y + 15, 2, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + 25, y + 15, 2, 0, Math.PI*2); ctx.fill();
-            }
-
-            function drawPipe(x, y, h, type) {
-                const pipeW = 80;
-                const headH = 30;
-                const headExtra = 10;
-
-                ctx.fillStyle = "#2ecc71"; // Vert Mario
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 3;
-
-                if (type === "top") {
-                    // Corps
-                    ctx.fillRect(x, 0, pipeW, h - headH);
-                    ctx.strokeRect(x, 0, pipeW, h - headH);
-                    // Tête (Cheminée)
-                    ctx.fillRect(x - headExtra, h - headH, pipeW + (headExtra * 2), headH);
-                    ctx.strokeRect(x - headExtra, h - headH, pipeW + (headExtra * 2), headH);
-                } else {
-                    // Tête (Cheminée)
-                    ctx.fillRect(x - headExtra, canvas.height - h, pipeW + (headExtra * 2), headH);
-                    ctx.strokeRect(x - headExtra, canvas.height - h, pipeW + (headExtra * 2), headH);
-                    // Corps
-                    ctx.fillRect(x, canvas.height - h + headH, pipeW, h - headH);
-                    ctx.strokeRect(x, canvas.height - h + headH, pipeW, h - headH);
-                }
-            }
 
             function reset() {
                 bird.y = canvas.height/2; bird.v = 0; pipes = []; score = 0; frame = 0;
                 document.getElementById('flap-score').innerText = "0";
             }
 
-            window.onmousedown = () => { if(currentApp === 'flappy-app') bird.v = -7; };
+            window.onmousedown = () => { if(currentApp === 'flappy-app') bird.v = -9; };
+
+            function drawPipe(x, h, type) {
+                const pipeW = 90;
+                const headH = 35;
+                ctx.fillStyle = "#2ecc71";
+                ctx.strokeStyle = "#1a3c1a";
+                ctx.lineWidth = 4;
+
+                if(type === "top") {
+                    ctx.fillRect(x, 0, pipeW, h - headH);
+                    ctx.strokeRect(x, 0, pipeW, h - headH);
+                    ctx.fillRect(x - 10, h - headH, pipeW + 20, headH);
+                    ctx.strokeRect(x - 10, h - headH, pipeW + 20, headH);
+                } else {
+                    ctx.fillRect(x - 10, canvas.height - h, pipeW + 20, headH);
+                    ctx.strokeRect(x - 10, canvas.height - h, pipeW + 20, headH);
+                    ctx.fillRect(x, canvas.height - h + headH, pipeW, h - headH);
+                    ctx.strokeRect(x, canvas.height - h + headH, pipeW, h - headH);
+                }
+            }
 
             function loop() {
                 if(currentApp !== 'flappy-app') return;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0,0,canvas.width,canvas.height);
 
+                // Banana Physics & Image
                 bird.v += bird.g;
                 bird.y += bird.v;
-                drawPeely(bird.x, bird.y);
 
-                if(frame % 120 === 0) {
-                    let gap = 200;
-                    let h = Math.random() * (canvas.height - 400) + 100;
+                ctx.save();
+                ctx.translate(bird.x + bird.w/2, bird.y + bird.h/2);
+                let rotation = Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.05));
+                ctx.rotate(rotation);
+                // On dessine l'image banana.PNG
+                ctx.drawImage(bananaImg, -bird.w/2, -bird.h/2, bird.w, bird.h);
+                ctx.restore();
+
+                // Pipes logic
+                if(frame % 110 === 0) {
+                    let gap = 220;
+                    let h = Math.random() * (canvas.height - 450) + 100;
                     pipes.push({ x: canvas.width, top: h, bottom: canvas.height - h - gap, passed: false });
                 }
 
                 for(let i = pipes.length - 1; i >= 0; i--) {
                     let p = pipes[i];
-                    p.x -= 3.5;
+                    p.x -= 4;
+                    drawPipe(p.x, p.top, "top");
+                    drawPipe(p.x, p.bottom, "bottom");
 
-                    drawPipe(p.x, 0, p.top, "top");
-                    drawPipe(p.x, 0, p.bottom, "bottom");
-
-                    // Collision (ajustée pour les tuyaux larges)
-                    if (bird.x + bird.w > p.x - 10 && bird.x < p.x + 90) {
-                        if (bird.y < p.top || bird.y + bird.h > canvas.height - p.bottom) {
-                            reset();
-                        }
+                    // Collision (Box collision simple)
+                    if(bird.x + bird.w - 5 > p.x && bird.x + 5 < p.x + 90) {
+                        if(bird.y + 5 < p.top || bird.y + bird.h - 5 > canvas.height - p.bottom) reset();
                     }
 
-                    if (p.x + 80 < bird.x && !p.passed) {
+                    if(p.x + 90 < bird.x && !p.passed) {
                         score++; p.passed = true;
                         document.getElementById('flap-score').innerText = score;
                     }
-
-                    if(p.x < -100) pipes.splice(i, 1);
+                    if(p.x < -120) pipes.splice(i, 1);
                 }
 
-                if(bird.y > canvas.height || bird.y < 0) reset();
-
+                if(bird.y > canvas.height || bird.y < -50) reset();
                 frame++;
                 flapGameReq = requestAnimationFrame(loop);
             }
