@@ -3,245 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaming Hub - Professional Stadium</title>
+    <title>Gaming Hub - Peely Edition</title>
     <style>
         :root {
             --bg-dark: #050505;
             --accent: #ff00ea;
-            --fortnite-green: #2ecc71;
-            --card-bg: #111;
-            --pitch-green: #27ae60;
-            --grass-dark: #1e8449;
-            --line-white: rgba(255, 255, 255, 0.8);
+            --mario-green: #2ecc71;
+            --mario-dark: #27ae60;
+            --sky-blue: #70c5ce;
         }
 
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; user-select: none; }
 
         /* --- HUB LAUNCHER --- */
         #launcher-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; background: radial-gradient(circle, #1a1a1a 0%, #050505 100%); }
-        .hub-title { font-size: 60px; font-weight: 900; margin-bottom: 50px; text-transform: uppercase; letter-spacing: 5px; color: var(--accent); text-shadow: 0 0 20px var(--accent); }
-        .game-grid { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
-        .game-card { width: 280px; height: 380px; background: var(--card-bg); border: 2px solid #333; border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 30px; }
-        .game-card:hover { transform: translateY(-15px); border-color: var(--accent); box-shadow: 0 0 30px rgba(255, 0, 234, 0.3); }
-        .game-card .icon { font-size: 100px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%); }
-        .game-card h3 { font-size: 24px; margin: 0; text-transform: uppercase; }
+        .hub-title { font-size: 50px; font-weight: 900; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 5px; color: var(--accent); text-shadow: 0 0 20px var(--accent); }
+        .game-grid { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .game-card { width: 200px; height: 300px; background: #111; border: 2px solid #333; border-radius: 20px; cursor: pointer; transition: 0.3s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 20px; }
+        .game-card:hover { transform: translateY(-10px); border-color: var(--accent); }
+        .game-card .icon { font-size: 60px; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); }
 
-        /* --- GLOBAL SCREENS --- */
-        .app-container { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 5000; background: var(--bg-dark); }
-        .screen { width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: 6000; background: var(--bg-dark); }
-        .active-screen { display: flex !important; }
+        /* --- GLOBAL --- */
+        .app-container { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 5000; }
+        .btn-exit { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 10px 20px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #fff; cursor: pointer; border-radius: 5px; }
+        .score-ui { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: 900; z-index: 9000; color: white; text-shadow: 3px 3px 0 #000; }
 
-        /* --- PENALTY KING STADIUM --- */
-        #penalty-game-container { position: relative; width: 100vw; height: 100vh; background: linear-gradient(to bottom, #1a1a1a 0%, #0a0a0a 40%, var(--pitch-green) 40%, var(--grass-dark) 100%); overflow: hidden; display: none; cursor: crosshair; }
+        /* --- FLAPPY BANANA STYLES --- */
+        #flappy-wrap { width: 100%; height: 100%; background: var(--sky-blue); position: relative; overflow: hidden; }
         
-        /* Terrain Lines */
-        #penalty-box {
-            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
-            width: 80%; height: 60%; border: 4px solid var(--line-white); border-top: none; z-index: 2;
-        }
-        #penalty-spot {
-            position: absolute; bottom: 15%; left: 50%; transform: translate(-50%, 50%);
-            width: 12px; height: 12px; background: white; border-radius: 50%; z-index: 3;
-            box-shadow: 0 0 10px white;
-        }
+        /* Paysage de Montagnes */
+        .mountain { position: absolute; bottom: 0; background: #4b7a47; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.7; }
+        .mt-1 { width: 400px; height: 300px; left: -50px; background: #3d633a; }
+        .mt-2 { width: 500px; height: 400px; left: 200px; background: #2d4d2a; }
+        .mt-3 { width: 600px; height: 250px; right: -100px; background: #3d633a; }
 
-        #crowd-layer {
-            position: absolute; top: 15%; width: 100%; height: 25%;
-            display: flex; justify-content: center; align-items: flex-end;
-            gap: 2px; filter: blur(1px); opacity: 0.8; z-index: 1;
-        }
-        .fan { width: 12px; height: 25px; border-radius: 5px 5px 0 0; position: relative; }
-        .fan::after { content: ''; position: absolute; top: -10px; left: 2px; width: 8px; height: 8px; background: #ffe0bd; border-radius: 50%; }
-        
-        .celebrate .fan { animation: jump 0.4s infinite alternate; }
-        @keyframes jump { from { transform: translateY(0); } to { transform: translateY(-15px); } }
-
-        #goal-area { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 50%; height: 35%; border: 12px solid #eee; border-bottom: none; z-index: 5; background: rgba(255,255,255,0.05); }
-        
-        #keeper-character { position: absolute; top: 32%; left: 50%; transform: translateX(-50%); width: 100px; height: 140px; z-index: 10; transition: left 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.4s; display: flex; flex-direction: column; align-items: center; }
-        .k-head { width: 36px; height: 42px; background: #ffe0bd; border-radius: 40%; border: 2px solid #222; position: relative; display: flex; justify-content: center; }
-        .k-hair { position: absolute; top: 0; width: 100%; height: 15px; background: #4a301e; border-radius: 40% 40% 0 0; }
-        .k-eye { width: 4px; height: 4px; background: #000; border-radius: 50%; position: absolute; top: 20px; }
-        .eye-l { left: 8px; } .eye-r { right: 8px; }
-        .k-mouth { width: 10px; height: 2px; background: #8e44ad; position: absolute; top: 32px; border-radius: 2px; }
-        .k-jersey { width: 60px; height: 65px; background: #111; border-radius: 10px; background-image: linear-gradient(135deg, var(--accent) 25%, transparent 25%), linear-gradient(225deg, var(--accent) 25%, transparent 25%); background-size: 20px 20px; border: 2px solid #000; }
-        .k-arm { width: 14px; height: 55px; background: #111; position: absolute; top: 45px; border-radius: 5px; }
-        .arm-l { left: 10px; transform: rotate(30deg); transform-origin: top; }
-        .arm-r { right: 10px; transform: rotate(-30deg); transform-origin: top; }
-        .k-glove { width: 22px; height: 28px; background: #333; position: absolute; bottom: -10px; left: -4px; border-radius: 5px; border: 1px solid #555; }
-
-        #ball { position: absolute; bottom: 15%; left: 50%; transform: translate(-50%, 50%); font-size: 65px; z-index: 20; pointer-events: none; transition: 0.6s cubic-bezier(0.17, 0.67, 0.25, 1); text-shadow: 0 10px 10px rgba(0,0,0,0.5); }
-        #foot-ui { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 50px; font-size: 28px; font-weight: bold; z-index: 100; text-shadow: 2px 2px #000; }
-        .goal-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 90px; font-weight: 900; opacity: 0; pointer-events: none; z-index: 200; transition: 0.3s; }
-
-        .btn-menu { width: 260px; padding: 18px; margin: 12px; border: none; border-radius: 8px; font-size: 22px; font-weight: bold; cursor: pointer; transition: 0.2s; text-transform: uppercase; background: var(--fortnite-green); color: white; }
     </style>
 </head>
-<body onclick="initAudio()">
+<body>
 
     <div id="launcher-screen">
-        <h1 class="hub-title">Stadium Hub</h1>
+        <h1 class="hub-title">Pro Game Hub</h1>
         <div class="game-grid">
-            <div class="game-card" onclick="openApp('aim-trainer')">
-                <div class="icon">🎯</div>
-                <h3>Aim Trainer</h3>
+            <div class="game-card" onclick="openApp('flappy-app')">
+                <div class="icon">🍌</div>
+                <h3>Flappy Banana</h3>
             </div>
-            <div class="game-card" onclick="openApp('penalty-shootout')">
+            <div class="game-card" onclick="openApp('penalty-app')">
                 <div class="icon">⚽</div>
                 <h3>Penalty King</h3>
             </div>
         </div>
     </div>
 
-    <div id="aim-trainer" class="app-container">
-        <div class="screen active-screen">
-            <h1>AIM TRAINER</h1>
-            <button class="btn-menu" style="background:#444;" onclick="closeApp()">EXIT TO HUB</button>
+    <div id="flappy-app" class="app-container">
+        <button class="btn-exit" onclick="closeApp()">EXIT</button>
+        <div class="score-ui" id="flap-score">0</div>
+        <div id="flappy-wrap">
+            <div class="mountain mt-1"></div>
+            <div class="mountain mt-2"></div>
+            <div class="mountain mt-3"></div>
+            <canvas id="flappy-canvas"></canvas>
         </div>
     </div>
 
-    <div id="penalty-shootout" class="app-container">
-        <div id="penalty-menu" class="screen active-screen">
-            <h1 style="color: gold; text-shadow: 0 0 10px gold;">PENALTY KING</h1>
-            <button class="btn-menu" onclick="startGamePenalty()">PLAY MATCH</button>
-            <button class="btn-menu" style="background:#444;" onclick="closeApp()">EXIT</button>
-        </div>
-
-        <div id="penalty-game-container">
-            <div id="crowd-layer"></div>
-            <div id="penalty-box"></div>
-            <div id="penalty-spot"></div>
-
-            <div id="foot-ui">
-                <span>GOALS: <span id="foot-score">0</span></span>
-                <span>BEST: <span id="foot-best">0</span></span>
-                <button onclick="backToFootMenu()" style="background:#444; color:white; border:none; padding:5px 15px; cursor:pointer; border-radius:5px;">MENU</button>
-            </div>
-            <div id="goal-area"></div>
-            <div id="keeper-character">
-                <div class="k-head"><div class="k-hair"></div><div class="k-eye eye-l"></div><div class="k-eye eye-r"></div><div class="k-mouth"></div></div>
-                <div class="k-jersey"></div>
-                <div class="k-arm arm-l"><div class="k-glove"></div></div>
-                <div class="k-arm arm-r"><div class="k-glove"></div></div>
-            </div>
-            <div id="ball">⚽</div>
-            <div id="goal-text" class="goal-msg">GOAL!</div>
-        </div>
+    <div id="penalty-app" class="app-container">
+        <button class="btn-exit" onclick="closeApp()">EXIT</button>
+        <div style="display:flex; justify-content:center; align-items:center; height:100%; font-size:24px;">Football Game Loaded</div>
     </div>
 
     <script>
-        let footScore = 0;
-        let footBest = localStorage.getItem('footBest') || 0;
-        let isShooting = false;
-        let footGameActive = false;
-        let applauseSound = new Audio('https://www.soundjay.com/human/applause-01.mp3');
-
-        function initAudio() { applauseSound.play().then(() => { applauseSound.pause(); applauseSound.currentTime = 0; }); }
-
-        const crowd = document.getElementById('crowd-layer');
-        const colors = ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#e67e22'];
-        for(let i=0; i<80; i++) {
-            let f = document.createElement('div');
-            f.className = 'fan';
-            f.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
-            crowd.appendChild(f);
-        }
+        let currentApp = null;
+        let flapGameReq;
 
         function openApp(id) {
             document.getElementById('launcher-screen').style.display = 'none';
-            document.querySelectorAll('.app-container').forEach(app => app.style.display = 'none');
+            document.querySelectorAll('.app-container').forEach(a => a.style.display = 'none');
             document.getElementById(id).style.display = 'block';
+            currentApp = id;
+            if(id === 'flappy-app') startFlappy();
         }
 
         function closeApp() {
-            footGameActive = false;
-            document.querySelectorAll('.app-container').forEach(app => app.style.display = 'none');
+            cancelAnimationFrame(flapGameReq);
             document.getElementById('launcher-screen').style.display = 'flex';
+            document.getElementById(currentApp).style.display = 'none';
+            currentApp = null;
         }
 
-        function backToFootMenu() {
-            footGameActive = false;
-            document.getElementById('penalty-game-container').style.display = 'none';
-            document.getElementById('penalty-menu').classList.add('active-screen');
-        }
+        /* --- FLAPPY ENGINE --- */
+        function startFlappy() {
+            const canvas = document.getElementById('flappy-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
 
-        function startGamePenalty() {
-            document.getElementById('penalty-menu').classList.remove('active-screen');
-            document.getElementById('penalty-game-container').style.display = 'block';
-            footGameActive = true;
-            footScore = 0;
-            document.getElementById('foot-best').innerText = footBest;
-            updateFootUI();
-            resetKeeper();
-        }
+            let bird = { x: 100, y: canvas.height/2, w: 40, h: 50, v: 0, g: 0.4 };
+            let pipes = [];
+            let score = 0;
+            let frame = 0;
 
-        function resetKeeper() {
-            const k = document.getElementById('keeper-character');
-            k.style.left = "50%";
-            k.style.transform = "translateX(-50%) rotate(0deg)";
-        }
+            function drawPeely(x, y) {
+                // Corps Banane (Fortnite Style)
+                ctx.fillStyle = "#FFD700";
+                ctx.beginPath();
+                ctx.ellipse(x + 20, y + 25, 15, 25, 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                // Haut Noir
+                ctx.fillStyle = "#4b3216";
+                ctx.fillRect(x + 18, y, 4, 5);
+                // Yeux
+                ctx.fillStyle = "white";
+                ctx.beginPath(); ctx.arc(x + 15, y + 15, 4, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + 25, y + 15, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath(); ctx.arc(x + 15, y + 15, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + 25, y + 15, 2, 0, Math.PI*2); ctx.fill();
+            }
 
-        document.getElementById('penalty-game-container').addEventListener('mousedown', (e) => {
-            if(!footGameActive || isShooting) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const tx = ((e.clientX - rect.left) / rect.width) * 100;
-            const ty = ((e.clientY - rect.top) / rect.height) * 100;
-            aiDive(tx);
-            shootBall(tx, ty);
-        });
+            function drawPipe(x, y, h, type) {
+                const pipeW = 80;
+                const headH = 30;
+                const headExtra = 10;
 
-        function aiDive(playerX) {
-            const k = document.getElementById('keeper-character');
-            let accuracy = 40 + (footScore * 2);
-            let finalX = (Math.random() * 100 < accuracy) ? (playerX > 55 ? 65 : (playerX < 45 ? 35 : 50)) : [35, 50, 65][Math.floor(Math.random()*3)];
-            k.style.left = finalX + "%";
-            k.style.transform = `translateX(-50%) rotate(${(finalX-50)*2.5}deg)`;
-        }
+                ctx.fillStyle = "#2ecc71"; // Vert Mario
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 3;
 
-        function shootBall(tx, ty) {
-            isShooting = true;
-            const ball = document.getElementById('ball');
-            ball.style.left = tx + "%";
-            ball.style.bottom = (100 - ty) + "%";
-            ball.style.transform = "translateX(-50%) scale(0.3) rotate(1080deg)";
+                if (type === "top") {
+                    // Corps
+                    ctx.fillRect(x, 0, pipeW, h - headH);
+                    ctx.strokeRect(x, 0, pipeW, h - headH);
+                    // Tête (Cheminée)
+                    ctx.fillRect(x - headExtra, h - headH, pipeW + (headExtra * 2), headH);
+                    ctx.strokeRect(x - headExtra, h - headH, pipeW + (headExtra * 2), headH);
+                } else {
+                    // Tête (Cheminée)
+                    ctx.fillRect(x - headExtra, canvas.height - h, pipeW + (headExtra * 2), headH);
+                    ctx.strokeRect(x - headExtra, canvas.height - h, pipeW + (headExtra * 2), headH);
+                    // Corps
+                    ctx.fillRect(x, canvas.height - h + headH, pipeW, h - headH);
+                    ctx.strokeRect(x, canvas.height - h + headH, pipeW, h - headH);
+                }
+            }
 
-            setTimeout(() => {
-                const kX = parseFloat(document.getElementById('keeper-character').style.left);
-                const inGoalX = tx >= 25.5 && tx <= 74.5;
-                const inGoalY = ty >= 15.5 && ty <= 49.5;
-                const saved = Math.abs(tx - kX) < 9 && ty < 55;
+            function reset() {
+                bird.y = canvas.height/2; bird.v = 0; pipes = []; score = 0; frame = 0;
+                document.getElementById('flap-score').innerText = "0";
+            }
 
-                if (saved) showMsg("SAVED! 🧤", "red");
-                else if (inGoalX && inGoalY) {
-                    footScore++;
-                    if(footScore > footBest) { footBest = footScore; localStorage.setItem('footBest', footBest); }
-                    showMsg("GOAL! ⚽", "gold");
-                    crowd.classList.add('celebrate');
-                    applauseSound.currentTime = 0;
-                    applauseSound.play();
-                } else showMsg("OUT! ❌", "white");
+            window.onmousedown = () => { if(currentApp === 'flappy-app') bird.v = -7; };
 
-                updateFootUI();
-                setTimeout(() => {
-                    ball.style.transition = "none";
-                    ball.style.left = "50%"; ball.style.bottom = "15%";
-                    ball.style.transform = "translateX(-50%) translate(0, 50%) scale(1) rotate(0deg)";
-                    resetKeeper();
-                    crowd.classList.remove('celebrate');
-                    setTimeout(() => { ball.style.transition = "0.6s cubic-bezier(0.17, 0.67, 0.25, 1)"; isShooting = false; }, 50);
-                }, 1000);
-            }, 600);
-        }
+            function loop() {
+                if(currentApp !== 'flappy-app') return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function showMsg(t, c) {
-            const m = document.getElementById('goal-text');
-            m.innerText = t; m.style.color = c; m.style.opacity = 1;
-            setTimeout(() => m.style.opacity = 0, 800);
-        }
+                bird.v += bird.g;
+                bird.y += bird.v;
+                drawPeely(bird.x, bird.y);
 
-        function updateFootUI() {
-            document.getElementById('foot-score').innerText = footScore;
-            document.getElementById('foot-best').innerText = footBest;
+                if(frame % 120 === 0) {
+                    let gap = 200;
+                    let h = Math.random() * (canvas.height - 400) + 100;
+                    pipes.push({ x: canvas.width, top: h, bottom: canvas.height - h - gap, passed: false });
+                }
+
+                for(let i = pipes.length - 1; i >= 0; i--) {
+                    let p = pipes[i];
+                    p.x -= 3.5;
+
+                    drawPipe(p.x, 0, p.top, "top");
+                    drawPipe(p.x, 0, p.bottom, "bottom");
+
+                    // Collision (ajustée pour les tuyaux larges)
+                    if (bird.x + bird.w > p.x - 10 && bird.x < p.x + 90) {
+                        if (bird.y < p.top || bird.y + bird.h > canvas.height - p.bottom) {
+                            reset();
+                        }
+                    }
+
+                    if (p.x + 80 < bird.x && !p.passed) {
+                        score++; p.passed = true;
+                        document.getElementById('flap-score').innerText = score;
+                    }
+
+                    if(p.x < -100) pipes.splice(i, 1);
+                }
+
+                if(bird.y > canvas.height || bird.y < 0) reset();
+
+                frame++;
+                flapGameReq = requestAnimationFrame(loop);
+            }
+            loop();
         }
     </script>
 </body>
