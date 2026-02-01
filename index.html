@@ -75,12 +75,11 @@
         .btn-start { background: var(--fortnite-green); color: white; }
         .btn-settings { background: #333; color: white; }
 
-        /* CSS Mémorisé pour knob-section */
+        /* CSS Mémorisé */
         .knob-section { 
             display: flex; justify-content: space-between; align-items: flex-end; height: 180px; padding-bottom: -10px; margin-top: auto; 
         }
 
-        /* CSS Mémorisé pour controls-center-group */
         .controls-center-group {
             display: flex;
             align-items: flex-end;
@@ -162,15 +161,19 @@
             document.getElementById('launcher-screen').style.display = 'flex';
         }
 
-        /* --- FLAPPY BANANA (NOIR & COULEURS ALEATOIRES) --- */
+        /* --- FLAPPY BANANA --- */
         function initFlappy() {
             const cvs = document.getElementById('flappy-canvas');
             const ctx = cvs.getContext('2d');
             cvs.width = window.innerWidth; cvs.height = window.innerHeight;
             let bird = { x: 100, y: cvs.height/2, v: 0, g: 0.5 };
             let pipes = [], score = 0, frames = 0;
+            let isStarted = false; // Variable pour empêcher le mouvement au départ
 
-            window.onmousedown = () => { bird.v = -9; };
+            window.onmousedown = () => { 
+                if(!isStarted) isStarted = true; // Démarre au premier clic
+                bird.v = -9; 
+            };
 
             function getRandomColor() {
                 const letters = '0123456789ABCDEF';
@@ -183,37 +186,47 @@
 
             function loop() {
                 ctx.clearRect(0,0,cvs.width,cvs.height);
-                // Dessin du fond noir (par défaut via le CSS, mais ici pour sécurité)
                 ctx.fillStyle = "#000000";
                 ctx.fillRect(0, 0, cvs.width, cvs.height);
 
-                bird.v += bird.g; bird.y += bird.v;
+                if(isStarted) {
+                    bird.v += bird.g; 
+                    bird.y += bird.v;
+                }
                 
                 if(bananaImg.complete) ctx.drawImage(bananaImg, bird.x, bird.y, 50, 50);
                 
-                if(frames++ % 100 === 0) {
-                    pipes.push({ 
-                        x: cvs.width, 
-                        h: Math.random()*(cvs.height-400)+100, 
-                        passed: false,
-                        color: getRandomColor() // Couleur aléatoire générée ici
+                if(isStarted) {
+                    if(frames++ % 100 === 0) {
+                        pipes.push({ 
+                            x: cvs.width, 
+                            h: Math.random()*(cvs.height-400)+100, 
+                            passed: false,
+                            color: getRandomColor()
+                        });
+                    }
+
+                    pipes.forEach(p => {
+                        p.x -= 4;
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(p.x, 0, 80, p.h); 
+                        ctx.fillRect(p.x, p.h+220, 80, cvs.height);
+                        
+                        if(bird.x+40 > p.x && bird.x+10 < p.x+80 && (bird.y+10 < p.h || bird.y+40 > p.h+220)) {
+                            bird.y = cvs.height/2; pipes = []; score = 0; isStarted = false; // Reset et pause au crash
+                        }
+                        if(p.x+80 < bird.x && !p.passed) { score++; p.passed = true; }
                     });
+                } else {
+                    // Message instructif si non démarré
+                    ctx.fillStyle = "white";
+                    ctx.font = "30px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("CLIQUEZ POUR LANCER", cvs.width/2, cvs.height/2 + 100);
                 }
 
-                pipes.forEach(p => {
-                    p.x -= 4;
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x, 0, 80, p.h); 
-                    ctx.fillRect(p.x, p.h+220, 80, cvs.height);
-                    
-                    if(bird.x+40 > p.x && bird.x+10 < p.x+80 && (bird.y+10 < p.h || bird.y+40 > p.h+220)) {
-                        bird.y = cvs.height/2; pipes = []; score = 0;
-                    }
-                    if(p.x+80 < bird.x && !p.passed) { score++; p.passed = true; }
-                });
-
                 document.getElementById('flap-score-ui').innerText = score;
-                if(bird.y > cvs.height || bird.y < -50) { bird.y = cvs.height/2; pipes = []; score = 0; }
+                if(bird.y > cvs.height || bird.y < -50) { bird.y = cvs.height/2; pipes = []; score = 0; isStarted = false; }
                 currentLoop = requestAnimationFrame(loop);
             }
             loop();
