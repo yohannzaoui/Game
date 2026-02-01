@@ -59,7 +59,8 @@
         /* --- UI COMMUNE --- */
         .app-container { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 5000; background: var(--bg-dark); }
         .btn-exit-global { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 10px 20px; background: #000; color: white; border: 1px solid #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .global-score { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: 900; z-index: 9000; text-shadow: 2px 2px 0 #000; pointer-events: none; }
+        .global-score { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: 900; z-index: 9000; text-shadow: 2px 2px 0 #000; pointer-events: none; text-align: center; }
+        .global-best { font-size: 18px; color: gold; display: block; text-shadow: 1px 1px 0 #000; }
 
         /* --- STYLE FLAPPY (FOND NOIR) --- */
         #flappy-canvas { background: #000000; display: block; }
@@ -140,7 +141,10 @@
 
     <div id="flappy-banana" class="app-container">
         <button class="btn-exit-global" onclick="closeApp('flappy-banana')">QUITTER</button>
-        <div class="global-score" id="flap-score-ui">0</div>
+        <div class="global-score">
+            <span id="flap-score-ui">0</span>
+            <span class="global-best">BEST: <span id="flap-best-ui">0</span></span>
+        </div>
         <canvas id="flappy-canvas"></canvas>
     </div>
 
@@ -166,22 +170,39 @@
             const cvs = document.getElementById('flappy-canvas');
             const ctx = cvs.getContext('2d');
             cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+            
             let bird = { x: 100, y: cvs.height/2, v: 0, g: 0.5 };
             let pipes = [], score = 0, frames = 0;
-            let isStarted = false; // Variable pour empêcher le mouvement au départ
+            let isStarted = false;
+
+            // Charger le best score
+            let bestScore = localStorage.getItem('flappyBest') || 0;
+            document.getElementById('flap-best-ui').innerText = bestScore;
 
             window.onmousedown = () => { 
-                if(!isStarted) isStarted = true; // Démarre au premier clic
+                if(!isStarted) isStarted = true;
                 bird.v = -9; 
             };
 
             function getRandomColor() {
                 const letters = '0123456789ABCDEF';
                 let color = '#';
-                for (let i = 0; i < 6; i++) {
-                    color += letters[Math.floor(Math.random() * 16)];
-                }
+                for (let i = 0; i < 6; i++) { color += letters[Math.floor(Math.random() * 16)]; }
                 return color;
+            }
+
+            function resetGame() {
+                // Vérifier si record battu
+                if(score > bestScore) {
+                    bestScore = score;
+                    localStorage.setItem('flappyBest', bestScore);
+                    document.getElementById('flap-best-ui').innerText = bestScore;
+                }
+                bird.y = cvs.height/2; 
+                bird.v = 0;
+                pipes = []; 
+                score = 0; 
+                isStarted = false;
             }
 
             function loop() {
@@ -213,12 +234,14 @@
                         ctx.fillRect(p.x, p.h+220, 80, cvs.height);
                         
                         if(bird.x+40 > p.x && bird.x+10 < p.x+80 && (bird.y+10 < p.h || bird.y+40 > p.h+220)) {
-                            bird.y = cvs.height/2; pipes = []; score = 0; isStarted = false; // Reset et pause au crash
+                            resetGame();
                         }
-                        if(p.x+80 < bird.x && !p.passed) { score++; p.passed = true; }
+                        if(p.x+80 < bird.x && !p.passed) { 
+                            score++; 
+                            p.passed = true; 
+                        }
                     });
                 } else {
-                    // Message instructif si non démarré
                     ctx.fillStyle = "white";
                     ctx.font = "30px Arial";
                     ctx.textAlign = "center";
@@ -226,14 +249,14 @@
                 }
 
                 document.getElementById('flap-score-ui').innerText = score;
-                if(bird.y > cvs.height || bird.y < -50) { bird.y = cvs.height/2; pipes = []; score = 0; isStarted = false; }
+                if(bird.y > cvs.height || bird.y < -50) { resetGame(); }
                 currentLoop = requestAnimationFrame(loop);
             }
             loop();
         }
 
         /* --- AIM TRAINER --- */
-        let score = 0, gameActive = false, progress = 0;
+        let scoreTrainer = 0, progress = 0;
         function startAppLoading() {
             progress = 0;
             const load = setInterval(() => {
@@ -250,12 +273,10 @@
             document.getElementById('screen-menu').classList.remove('active-screen');
             document.getElementById('game-container').style.display = 'block';
             document.getElementById('ui-panel').style.display = 'flex';
-            gameActive = true;
-            score = 0;
+            scoreTrainer = 0;
             document.getElementById('score').innerText = "0";
         }
         function backToMenu() {
-            gameActive = false;
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('ui-panel').style.display = 'none';
             showMenu();
