@@ -13,7 +13,7 @@
             --card-bg: #111;
         }
 
-        /* Utilisation du code body mémorisé */
+        /* --- CODE BODY MÉMORISÉ --- */
         body { 
             background-color: #3f3f3f; 
             display: flex; 
@@ -29,13 +29,8 @@
 
         /* --- LAUNCHER SCREEN --- */
         #launcher-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100vw; height: 100vh; background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
         }
 
         .hub-title { font-size: 60px; font-weight: 900; margin-bottom: 50px; text-transform: uppercase; letter-spacing: 5px; color: var(--accent); text-shadow: 0 0 20px var(--accent); }
@@ -43,13 +38,11 @@
 
         .game-card {
             width: 280px; height: 380px; background: var(--card-bg); 
-            border: 15px solid silver; /* Bordure mémorisée */
-            border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.3s;
+            border: 15px solid silver; border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.3s;
             position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 30px;
         }
-
         .game-card:hover { transform: translateY(-15px) scale(1.02); border-color: var(--accent); box-shadow: 0 0 30px rgba(255, 0, 234, 0.3); }
-        .game-card .icon { font-size: 100px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%); transition: 0.3s; }
+        .game-card .icon { font-size: 100px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%); }
         .game-card h3 { font-size: 24px; margin: 0; text-transform: uppercase; }
 
         /* --- UI COMMUNE --- */
@@ -57,16 +50,21 @@
         .btn-exit-global { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 10px 20px; background: #000; color: white; border: 1px solid #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .global-score { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: 900; z-index: 9000; text-shadow: 2px 2px 0 #000; text-align: center; }
 
-        /* --- BLOCK BLAST STYLE --- */
-        #block-blast { background: #121212; flex-direction: column; align-items: center; justify-content: center; }
-        #bb-grid { display: grid; grid-template-columns: repeat(8, 45px); grid-template-rows: repeat(8, 45px); gap: 4px; background: #222; padding: 8px; border-radius: 8px; }
-        .bb-cell { width: 45px; height: 45px; background: #333; border-radius: 4px; transition: 0.2s; }
-        .bb-cell.filled { box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-        #bb-pieces { display: flex; gap: 40px; margin-top: 40px; height: 150px; align-items: center; }
-        .bb-piece-container { cursor: grab; display: grid; gap: 2px; }
-        .bb-mini-cell { width: 20px; height: 20px; border-radius: 3px; }
+        /* --- AIM TRAINER STYLE --- */
+        .screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; background: var(--bg-dark); }
+        .active-screen { display: flex; }
+        .btn-menu { width: 260px; padding: 18px; margin: 12px; border: 15px solid silver; border-radius: 8px; font-size: 22px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-start { background: var(--fortnite-green); color: white; }
+        #game-container { position: relative; width: 100vw; height: 85vh; cursor: none; overflow: hidden; display: none; }
+        #scope { position: absolute; pointer-events: none; transform: translate(-50%, -50%); z-index: 2500; width: 40px; height: 40px; border: 2px solid red; border-radius: 50%; box-shadow: 0 0 10px red; }
+        .target { position: absolute; z-index: 100; font-size: 50px; cursor: pointer; }
+        #ui-panel { height: 15vh; background: #111; display: none; justify-content: space-around; align-items: center; border-top: 3px solid var(--accent); }
 
-        /* Styles additionnels requis par tes instructions mémorisées */
+        /* --- FLAPPY BANANA STYLE --- */
+        #flappy-canvas { background: #000; display: block; }
+        .global-best { font-size: 18px; color: gold; display: block; }
+
+        /* --- MÉMORISÉ --- */
         .knob-section { display: flex; justify-content: space-between; align-items: flex-end; height: 180px; padding-bottom: -10px; margin-top: auto; }
         .controls-center-group { display: flex; align-items: flex-end; gap: 25px; transform: translateY(10px); }
     </style>
@@ -76,10 +74,6 @@
     <div id="launcher-screen">
         <h1 class="hub-title">Mini Game Hub</h1>
         <div class="game-grid">
-            <div class="game-card" onclick="openApp('block-blast')">
-                <div class="icon">🧱</div>
-                <h3>Block Blast</h3>
-            </div>
             <div class="game-card" onclick="openApp('flappy-banana')">
                 <div class="icon">🍌</div>
                 <h3>Flappy Banana</h3>
@@ -91,148 +85,128 @@
         </div>
     </div>
 
-    <div id="block-blast" class="app-container">
-        <button class="btn-exit-global" onclick="closeApp('block-blast')">QUITTER</button>
-        <div class="global-score">
-            <span id="bb-score">0</span>
-            <div style="font-size:18px; color:gold;">BEST: <span id="bb-best">0</span></div>
+    <div id="aim-trainer" class="app-container">
+        <div id="screen-menu-aim" class="screen active-screen">
+            <h1 style="font-size: 50px; color: var(--accent);">AIM TRAINER</h1>
+            <button class="btn-menu btn-start" onclick="startGameAim()">JOUER</button>
+            <button class="btn-menu" style="background:#444;" onclick="closeApp('aim-trainer')">RETOUR HUB</button>
         </div>
-        <div id="bb-grid"></div>
-        <div id="bb-pieces"></div>
+        <div id="game-container">
+            <div id="scope"></div>
+        </div>
+        <div id="ui-panel">
+            <div style="font-size: 24px;">SCORE: <span id="aim-score">0</span></div>
+            <button class="btn-menu" style="width: 150px; padding: 10px; border-width: 5px;" onclick="stopGameAim()">QUITTER</button>
+        </div>
     </div>
 
-    <div id="flappy-banana" class="app-container"><button class="btn-exit-global" onclick="closeApp('flappy-banana')">RETOUR</button></div>
-    <div id="aim-trainer" class="app-container"><button class="btn-exit-global" onclick="closeApp('aim-trainer')">RETOUR</button></div>
+    <div id="flappy-banana" class="app-container">
+        <button class="btn-exit-global" onclick="closeApp('flappy-banana')">QUITTER</button>
+        <div class="global-score">
+            <span id="flap-score-ui">0</span>
+            <span class="global-best">BEST: <span id="flap-best-ui">0</span></span>
+        </div>
+        <canvas id="flappy-canvas"></canvas>
+    </div>
 
     <script>
+        const bananaImg = new Image(); bananaImg.src = 'banana.PNG';
+        let currentLoop = null;
+
         function openApp(id) {
             document.getElementById('launcher-screen').style.display = 'none';
-            document.getElementById(id).style.display = 'flex';
-            if (id === 'block-blast') initBlockBlast();
+            document.querySelectorAll('.app-container').forEach(a => a.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            if (id === 'flappy-banana') initFlappy();
         }
 
         function closeApp(id) {
+            cancelAnimationFrame(currentLoop);
             document.getElementById(id).style.display = 'none';
             document.getElementById('launcher-screen').style.display = 'flex';
         }
 
-        /* --- BLOCK BLAST LOGIC --- */
-        function initBlockBlast() {
-            const gridEl = document.getElementById('bb-grid');
-            const piecesEl = document.getElementById('bb-pieces');
-            let bbScore = 0;
-            let bbBest = localStorage.getItem('bbBest') || 0;
-            document.getElementById('bb-best').innerText = bbBest;
-            
-            let grid = Array(8).fill().map(() => Array(8).fill(null));
-            
-            const pieceTemplates = [
-                { shape: [[1,1,1],[1,1,1],[1,1,1]], color: '#e74c3c' }, // Carré 3x3 (Rouge)
-                { shape: [[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]], color: '#9b59b6' }, // Carré 4x4 (Violet)
-                { shape: [[1,0],[1,0],[1,1]], color: '#f1c40f' }, // L 4 segments (Jaune)
-                { shape: [[1,0],[1,1]], color: '#e67e22' }, // L 3 segments (Orange)
-                { shape: [[1,1,1],[1,1,1]], color: '#2ecc71' }, // Rectangle 3x2 (Vert)
-                { shape: [[1,1,1,1],[1,1,1,1]], color: '#1abc9c' }, // Rectangle 4x2 (Turquoise)
-                { shape: [[1,1,1,1]], color: '#3498db' }, // Ligne 4 (Bleu)
-                { shape: [[1,1,1,1,1]], color: '#ffffff' }, // Ligne 5 (Blanc)
-                { shape: [[1],[1],[1],[1]], color: '#34495e' }, // Colonne 4 (Gris)
-                { shape: [[1],[1],[1],[1],[1]], color: '#ff00ea' } // Colonne 5 (Rose)
-            ];
+        /* --- AIM TRAINER LOGIC --- */
+        let aimScore = 0;
+        function startGameAim() {
+            document.getElementById('screen-menu-aim').classList.remove('active-screen');
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('ui-panel').style.display = 'flex';
+            aimScore = 0;
+            document.getElementById('aim-score').innerText = "0";
+            spawnTarget();
+        }
+        function stopGameAim() {
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('ui-panel').style.display = 'none';
+            document.getElementById('screen-menu-aim').classList.add('active-screen');
+            document.querySelectorAll('.target').forEach(t => t.remove());
+        }
+        function spawnTarget() {
+            if(document.getElementById('game-container').style.display === 'none') return;
+            const t = document.createElement('div');
+            t.className = 'target';
+            t.innerText = "🎯";
+            t.style.left = Math.random() * 90 + "vw";
+            t.style.top = Math.random() * 70 + "vh";
+            t.onclick = () => {
+                aimScore += 10;
+                document.getElementById('aim-score').innerText = aimScore;
+                t.remove();
+                spawnTarget();
+            };
+            document.getElementById('game-container').appendChild(t);
+        }
+        window.addEventListener('mousemove', (e) => {
+            const scope = document.getElementById('scope');
+            if(scope) { scope.style.left = e.clientX + 'px'; scope.style.top = e.clientY + 'px'; }
+        });
 
-            function renderGrid() {
-                gridEl.innerHTML = '';
-                for(let r=0; r<8; r++) {
-                    for(let c=0; c<8; c++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'bb-cell';
-                        if(grid[r][c]) {
-                            cell.classList.add('filled');
-                            cell.style.background = grid[r][c];
-                        }
-                        cell.ondragover = (e) => e.preventDefault();
-                        cell.ondrop = (e) => handleDrop(e, r, c);
-                        gridEl.appendChild(cell);
-                    }
-                }
+        /* --- FLAPPY BANANA LOGIC --- */
+        function initFlappy() {
+            const cvs = document.getElementById('flappy-canvas'); const ctx = cvs.getContext('2d');
+            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+            let bird = { x: 100, y: cvs.height/2, v: 0, g: 0.5 }, pipes = [], score = 0, frames = 0, isS = false;
+            let best = localStorage.getItem('flappyBest') || 0;
+            document.getElementById('flap-best-ui').innerText = best;
+
+            window.onmousedown = () => { if(!isS) isS = true; bird.v = -9; };
+
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) { color += letters[Math.floor(Math.random() * 16)]; }
+                return color;
             }
 
-            function generatePieces() {
-                piecesEl.innerHTML = '';
-                for(let i=0; i<3; i++) {
-                    const template = pieceTemplates[Math.floor(Math.random()*pieceTemplates.length)];
-                    const pCont = document.createElement('div');
-                    pCont.className = 'bb-piece-container';
-                    pCont.draggable = true;
-                    pCont.style.gridTemplateColumns = `repeat(${template.shape[0].length}, 20px)`;
-                    
-                    template.shape.forEach(row => {
-                        row.forEach(val => {
-                            const mini = document.createElement('div');
-                            mini.className = 'bb-mini-cell';
-                            if(val) mini.style.background = template.color;
-                            pCont.appendChild(mini);
-                        });
+            function loop() {
+                ctx.fillStyle = "#000"; ctx.fillRect(0,0,cvs.width,cvs.height);
+                if(isS) {
+                    bird.v += bird.g; bird.y += bird.v;
+                    if(frames++ % 100 === 0) {
+                        pipes.push({ x: cvs.width, h: Math.random()*(cvs.height-400)+100, passed: false, color: getRandomColor() });
+                    }
+                    pipes.forEach((p, i) => {
+                        p.x -= 4; ctx.fillStyle = p.color;
+                        ctx.fillRect(p.x, 0, 80, p.h); ctx.fillRect(p.x, p.h+220, 80, cvs.height);
+                        if(bird.x+40 > p.x && bird.x+10 < p.x+80 && (bird.y+10 < p.h || bird.y+40 > p.h+220)) { 
+                            isS=false; bird.y=cvs.height/2; pipes=[]; score=0; bird.v=0;
+                        }
+                        if(p.x+80 < bird.x && !p.passed) { 
+                            score++; p.passed = true; 
+                            if(score > best) { best = score; localStorage.setItem('flappyBest', best); document.getElementById('flap-best-ui').innerText = best; }
+                        }
                     });
-
-                    pCont.ondragstart = (e) => {
-                        e.dataTransfer.setData('piece', JSON.stringify(template));
-                        e.dataTransfer.setData('index', i);
-                    };
-                    piecesEl.appendChild(pCont);
+                } else {
+                    ctx.fillStyle = "white"; ctx.font = "30px Arial"; ctx.textAlign = "center";
+                    ctx.fillText("CLIQUEZ POUR LANCER", cvs.width/2, cvs.height/2 + 100);
                 }
+                if(bananaImg.complete) ctx.drawImage(bananaImg, bird.x, bird.y, 50, 50);
+                document.getElementById('flap-score-ui').innerText = score;
+                if(bird.y > cvs.height || bird.y < -50) { isS=false; bird.y=cvs.height/2; pipes=[]; score=0; bird.v=0; }
+                currentLoop = requestAnimationFrame(loop);
             }
-
-            function handleDrop(e, row, col) {
-                const data = JSON.parse(e.dataTransfer.getData('piece'));
-                const pIdx = e.dataTransfer.getData('index');
-                const shape = data.shape;
-
-                let canPlace = true;
-                for(let r=0; r<shape.length; r++) {
-                    for(let c=0; c<shape[0].length; c++) {
-                        if(shape[r][c]) {
-                            if(row+r >= 8 || col+c >= 8 || grid[row+r][col+c]) canPlace = false;
-                        }
-                    }
-                }
-
-                if(canPlace) {
-                    for(let r=0; r<shape.length; r++) {
-                        for(let c=0; c<shape[0].length; c++) {
-                            if(shape[r][c]) grid[row+r][col+c] = data.color;
-                        }
-                    }
-                    piecesEl.children[pIdx].style.visibility = 'hidden';
-                    checkLines();
-                    renderGrid();
-                    if([...piecesEl.children].every(p => p.style.visibility === 'hidden')) generatePieces();
-                }
-            }
-
-            function checkLines() {
-                let rowsToClear = [], colsToClear = [];
-                for(let i=0; i<8; i++) {
-                    if(grid[i].every(cell => cell !== null)) rowsToClear.push(i);
-                    let colFull = true;
-                    for(let r=0; r<8; r++) if(!grid[r][i]) colFull = false;
-                    if(colFull) colsToClear.push(i);
-                }
-                rowsToClear.forEach(r => grid[r].fill(null));
-                colsToClear.forEach(c => grid.forEach(row => row[c] = null));
-                
-                if(rowsToClear.length > 0 || colsToClear.length > 0) {
-                    bbScore += (rowsToClear.length + colsToClear.length) * 100;
-                    document.getElementById('bb-score').innerText = bbScore;
-                    if(bbScore > bbBest) {
-                        bbBest = bbScore;
-                        localStorage.setItem('bbBest', bbBest);
-                        document.getElementById('bb-best').innerText = bbBest;
-                    }
-                }
-            }
-
-            renderGrid();
-            generatePieces();
+            loop();
         }
     </script>
 </body>
