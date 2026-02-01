@@ -50,8 +50,20 @@
         .btn-exit-global { position: absolute; top: 20px; right: 20px; z-index: 10000; padding: 10px 20px; background: #000; color: white; border: 1px solid #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .global-score { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: 900; z-index: 9000; text-shadow: 2px 2px 0 #000; text-align: center; }
 
-        /* --- QUIZ MASTER STYLE --- */
-        #quiz-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center; }
+        /* --- QUIZ SELECTION & GAME --- */
+        #quiz-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        #quiz-game-ui { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center; }
+        
+        .difficulty-btn {
+            width: 300px; margin: 15px; padding: 20px; border: 15px solid silver; border-radius: 15px;
+            font-size: 22px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s;
+            text-transform: uppercase;
+        }
+        .diff-easy { background: #2ecc71; }
+        .diff-medium { background: #f1c40f; }
+        .diff-hard { background: #e74c3c; }
+        .difficulty-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+
         .question-box { font-size: 28px; margin-bottom: 40px; max-width: 800px; font-weight: bold; line-height: 1.4; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 800px; }
         .btn-quiz { 
@@ -63,15 +75,6 @@
         /* --- MÉMORISÉ --- */
         .knob-section { display: flex; justify-content: space-between; align-items: flex-end; height: 180px; padding-bottom: -10px; margin-top: auto; }
         .controls-center-group { display: flex; align-items: flex-end; gap: 25px; transform: translateY(10px); }
-
-        /* --- AUTRES JEUX (CONTENEURS) --- */
-        #aim-trainer, #flappy-banana { display: none; }
-        .screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; background: var(--bg-dark); }
-        .active-screen { display: flex; }
-        .btn-menu { width: 260px; padding: 18px; margin: 12px; border: 15px solid silver; border-radius: 8px; font-size: 22px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        #game-container-aim { position: relative; width: 100vw; height: 85vh; cursor: none; overflow: hidden; display: none; }
-        #scope { position: absolute; pointer-events: none; transform: translate(-50%, -50%); z-index: 2500; width: 40px; height: 40px; border: 2px solid red; border-radius: 50%; }
-        .target { position: absolute; z-index: 100; font-size: 50px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -96,59 +99,46 @@
 
     <div id="quiz-master" class="app-container">
         <button class="btn-exit-global" onclick="closeApp('quiz-master')">QUITTER</button>
-        <div class="global-score">SCORE: <span id="quiz-score-ui">0</span></div>
-        <div id="quiz-container">
-            <div class="question-box" id="question-text">Préparation du quiz...</div>
+        
+        <div id="quiz-menu">
+            <h1 style="font-size: 40px; margin-bottom: 30px;">CHOISIS TA DIFFICULTÉ</h1>
+            <button class="difficulty-btn diff-easy" onclick="startQuiz('easy')">FACILE</button>
+            <button class="difficulty-btn diff-medium" onclick="startQuiz('medium')">MOYEN</button>
+            <button class="difficulty-btn diff-hard" onclick="startQuiz('hard')">DIFFICILE</button>
+        </div>
+
+        <div id="quiz-game-ui">
+            <div class="global-score">SCORE: <span id="quiz-score-ui">0</span></div>
+            <div class="question-box" id="question-text">Préparation...</div>
             <div class="options-grid" id="options-container"></div>
         </div>
     </div>
 
-    <div id="aim-trainer" class="app-container">
-        <div id="screen-menu-aim" class="screen active-screen">
-            <h1 style="font-size: 50px; color: var(--accent);">AIM TRAINER</h1>
-            <button class="btn-menu" style="background:var(--fortnite-green);" onclick="startGameAim()">JOUER</button>
-            <button class="btn-menu" style="background:#444;" onclick="closeApp('aim-trainer')">RETOUR HUB</button>
-        </div>
-        <div id="game-container-aim"><div id="scope"></div></div>
-    </div>
-
-    <div id="flappy-banana" class="app-container">
-        <button class="btn-exit-global" onclick="closeApp('flappy-banana')">QUITTER</button>
-        <div class="global-score"><span id="flap-score-ui">0</span></div>
-        <canvas id="flappy-canvas"></canvas>
-    </div>
-
     <script>
-        const bananaImg = new Image(); bananaImg.src = 'banana.PNG';
-        let currentLoop = null;
+        let quizScore = 0;
+        let currentDifficulty = 'easy';
 
         function openApp(id) {
             document.getElementById('launcher-screen').style.display = 'none';
             document.querySelectorAll('.app-container').forEach(a => a.style.display = 'none');
             document.getElementById(id).style.display = 'block';
-            if (id === 'flappy-banana') initFlappy();
-            if (id === 'quiz-master') initQuiz();
+            
+            if(id === 'quiz-master') {
+                document.getElementById('quiz-menu').style.display = 'flex';
+                document.getElementById('quiz-game-ui').style.display = 'none';
+            }
         }
 
         function closeApp(id) {
-            cancelAnimationFrame(currentLoop);
             document.getElementById(id).style.display = 'none';
             document.getElementById('launcher-screen').style.display = 'flex';
         }
 
-        /* --- LOGIQUE TRADUCTION SÉLECTIVE --- */
-        let quizScore = 0;
-
-        async function translateIfNecessary(text) {
-            // Liste simple de catégories à ne pas traduire (détection basique)
-            // L'API de traduction est appelée, mais on peut lui demander de respecter les noms propres
+        async function translateText(text) {
             try {
                 const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
                 const data = await res.json();
-                let translated = data.responseData.translatedText;
-                
-                // Si le texte original et traduit sont identiques (ex: nom propre), on garde l'original
-                return translated;
+                return data.responseData.translatedText;
             } catch (e) { return text; }
         }
 
@@ -158,34 +148,34 @@
             return txt.value;
         }
 
-        async function initQuiz() {
+        function startQuiz(diff) {
+            currentDifficulty = diff;
             quizScore = 0;
-            updateQuizScore();
+            document.getElementById('quiz-score-ui').innerText = "0";
+            document.getElementById('quiz-menu').style.display = 'none';
+            document.getElementById('quiz-game-ui').style.display = 'flex';
             fetchQuestion();
-        }
-
-        function updateQuizScore() {
-            document.getElementById('quiz-score-ui').innerText = quizScore;
         }
 
         async function fetchQuestion() {
             const questionText = document.getElementById('question-text');
             const container = document.getElementById('options-container');
-            questionText.innerText = "Traduction en cours...";
+            questionText.innerText = "Chargement d'une question " + currentDifficulty + "...";
             container.innerHTML = "";
 
             try {
-                const response = await fetch('https://opentdb.com/api.php?amount=1&type=multiple');
+                const response = await fetch(`https://opentdb.com/api.php?amount=1&difficulty=${currentDifficulty}&type=multiple`);
                 const data = await response.json();
                 const item = data.results[0];
 
+                // Traduction de la question (Uniquement la question)
                 const rawQuestion = decodeHTML(item.question);
-                const translatedQuestion = await translateIfNecessary(rawQuestion);
+                const translatedQuestion = await translateText(rawQuestion);
                 
-                // Traduction des options (l'API MyMemory respecte généralement les noms propres)
-                const translatedCorrect = await translateIfNecessary(decodeHTML(item.correct_answer));
+                // Traduction sélective des propositions (Noms propres ignorés par MyMemory généralement)
+                const translatedCorrect = await translateText(decodeHTML(item.correct_answer));
                 const translatedIncorrects = await Promise.all(
-                    item.incorrect_answers.map(async (a) => await translateIfNecessary(decodeHTML(a)))
+                    item.incorrect_answers.map(async (a) => await translateText(decodeHTML(a)))
                 );
 
                 const options = [...translatedIncorrects];
@@ -194,7 +184,7 @@
 
                 renderQuiz(translatedQuestion, options, correctIdx);
             } catch (e) {
-                questionText.innerText = "Erreur réseau. Nouvelle tentative...";
+                questionText.innerText = "Erreur. Reconnexion...";
                 setTimeout(fetchQuestion, 2000);
             }
         }
@@ -210,44 +200,17 @@
                 btn.innerText = opt;
                 btn.onclick = () => {
                     if(i === correctIdx) {
-                        quizScore += 10;
+                        quizScore += (currentDifficulty === 'easy' ? 10 : currentDifficulty === 'medium' ? 20 : 30);
                         btn.style.backgroundColor = "var(--fortnite-green)";
                     } else {
                         quizScore = Math.max(0, quizScore - 5);
                         btn.style.backgroundColor = "var(--damage-red)";
                     }
-                    updateQuizScore();
+                    document.getElementById('quiz-score-ui').innerText = quizScore;
                     setTimeout(fetchQuestion, 1000);
                 };
                 container.appendChild(btn);
             });
-        }
-
-        /* --- AIM TRAINER (Simplifié pour l'exemple) --- */
-        function startGameAim() {
-            document.getElementById('screen-menu-aim').classList.remove('active-screen');
-            document.getElementById('game-container-aim').style.display = 'block';
-            spawnTarget();
-        }
-        function spawnTarget() {
-            if(document.getElementById('game-container-aim').style.display === 'none') return;
-            const t = document.createElement('div');
-            t.className = 'target'; t.innerText = "🎯";
-            t.style.left = Math.random() * 80 + "vw"; t.style.top = Math.random() * 70 + "vh";
-            t.onclick = () => { t.remove(); spawnTarget(); };
-            document.getElementById('game-container-aim').appendChild(t);
-        }
-
-        /* --- FLAPPY BANANA (Simplifié pour l'exemple) --- */
-        function initFlappy() {
-            const cvs = document.getElementById('flappy-canvas'); const ctx = cvs.getContext('2d');
-            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-            function loop() {
-                ctx.fillStyle = "#000"; ctx.fillRect(0,0,cvs.width,cvs.height);
-                if(bananaImg.complete) ctx.drawImage(bananaImg, 100, 200, 50, 50);
-                currentLoop = requestAnimationFrame(loop);
-            }
-            loop();
         }
     </script>
 </body>
